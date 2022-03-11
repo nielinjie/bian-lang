@@ -75,13 +75,14 @@ b
 ## 技术选型
 
 1. 主体语言使用 Rust - 整个文章本就是作者学习 Rust 过程中的副产品。
-2. 解析器使用 nom (https://github.com/Geal/nom)- nom 是 combinator 类解析库里面比较有代表性的。combinator 是以函数作为解析单位，反复组合形成整体解析。还有一种解析库是 PEG 类型的，也就是直接写出 PEG 文件定义语法，由库直接生成整体解析器。比如 pest (https://bitbegin.github.io/pest-rs/)。之所以选择combinator主要是想多用Rust写代码。
+2. 解析器使用 nom (https://github.com/Geal/nom) - nom 是 combinator 类解析库里面比较有代表性的。combinator 是以函数作为解析单位，反复组合形成整体解析。还有一种解析库是 PEG 类型的，也就是直接写出 PEG 文件定义语法，由库直接生成整体解析器。比如 pest (https://bitbegin.github.io/pest-rs/) 。之所以选择 combinator 主要是想多用 Rust 写代码。
 3. 通用运行时 WASM - WASM 相对新潮、通用。能在多种平台上方便地运行。社区讨论也比较活跃。相关工具比较充足。
 4. WASM 构建使用 parity_wasm (https://github.com/paritytech/parity-wasm) - 很方便的底层 WASM 构建。
 
 ## 一些要点
 
 开发过程中遵循一些原则：
+
 1. 每个语法阶段都完成全流程，从解析到可运行。
 2. AST 驱动，而不是以 parser 的实现作为先决条件。因为 parser 实现复杂，容易陷入细节。
 3. 多写测试。
