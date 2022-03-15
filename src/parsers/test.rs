@@ -52,8 +52,8 @@ fn some_case_for_ws() {
 fn expr_int(i: i32) -> Box<Expr> {
     Box::new(Expr::Int(i))
 }
-impl Expr {
-    fn binary_expr(op: &str, l: i32, r: i32) -> Self {
+ impl Expr {
+    pub fn binary_expr(op: &str, l: i32, r: i32) -> Self {
         Expr::BinaryExpr {
             op: match op {
                 "+" => Operator::Plus,
