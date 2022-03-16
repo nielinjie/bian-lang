@@ -2,7 +2,7 @@ extern crate metered_wasmi;
 extern crate wabt;
 
 use super::*;
-use metered_wasmi::{ImportsBuilder, ModuleInstance, NopExternals, RuntimeValue};
+use metered_wasmi::{RuntimeValue};
 use parity_wasm::elements::Instruction;
 
 #[test]

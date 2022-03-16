@@ -1,7 +1,7 @@
 use metered_wasmi::RuntimeValue;
 
 use crate::parsers::{add_sub};
-use crate::ast::compile::Compilable;
+use crate::ast::compile::Compile;
 use crate::wasm::{module_with_single_function, run_module};
 #[test]
 fn string_to_result(){
