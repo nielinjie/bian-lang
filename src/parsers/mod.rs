@@ -63,3 +63,5 @@ fn external_err(i: &str, err: std::num::ParseIntError) -> nom::Err<nom::error::E
 
 #[cfg(test)]
 mod test;
+#[cfg(test)]
+mod test_variable;

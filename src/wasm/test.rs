@@ -2,8 +2,9 @@ extern crate metered_wasmi;
 extern crate wabt;
 
 use super::*;
-use metered_wasmi::{RuntimeValue};
+use metered_wasmi::RuntimeValue;
 use parity_wasm::elements::Instruction;
+use Instruction::*;
 
 #[test]
 fn simple() {
@@ -59,21 +60,14 @@ fn sample_wasm() -> Vec<u8> {
     .unwrap()
 }
 fn sample_by_builder() -> Vec<u8> {
-    module_with_single_function(vec![Instruction::I32Const(1337)], None)
+    module_with_single_function(vec![I32Const(1337)], None, None)
         .to_bytes()
         .unwrap()
 }
 fn sample_add_by_builder() -> Vec<u8> {
-    module_with_single_function(
-        vec![
-            Instruction::I32Const(1),
-            Instruction::I32Const(2),
-            Instruction::I32Add,
-        ],
-        None,
-    )
-    .to_bytes()
-    .unwrap()
+    module_with_single_function(vec![I32Const(1), I32Const(2), I32Add], None, None)
+        .to_bytes()
+        .unwrap()
 }
 
 #[test]
@@ -87,4 +81,28 @@ fn sample_builder_run() {
 #[test]
 fn sample_add_builder_run() {
     assert_eq!(run(sample_add_by_builder()), RuntimeValue::I32(3));
+}
+
+#[test]
+fn sample_variable_run() {
+    with_instructions(
+        vec![I32Const(1337), SetLocal(0), GetLocal(0)],
+        vec![Local::new(1, ValueType::I32)],
+        RuntimeValue::I32(1337),
+    )
+}
+
+pub fn with_instructions(
+    instructions: Vec<Instruction>,
+    locals: Vec<Local>,
+    result: RuntimeValue,
+) {
+    assert_eq!(
+        run(
+            module_with_single_function(instructions, None, Some(locals))
+                .to_bytes()
+                .unwrap()
+        ),
+        result
+    )
 }

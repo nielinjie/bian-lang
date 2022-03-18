@@ -1,9 +1,9 @@
-#[derive(PartialEq, Debug,Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Operator {
     Plus,
     Minus,
 }
-#[derive(PartialEq, Debug,Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum Expr {
     Int(i32),
     BinaryExpr {
@@ -11,11 +11,11 @@ pub enum Expr {
         left: Box<Expr>,
         right: Box<Expr>,
     },
-    UnaryExpr {
-        op:Operator,
-        obj: Box<Expr>,
-    },
-    Block(Vec<Expr>)
+    VarDef(String),
+    Assign(String, Box<Expr>),
+    Variable(String),
+
+    Block(Vec<Expr>),
 }
 
 pub mod compile;
@@ -23,3 +23,5 @@ pub mod compile;
 #[cfg(test)]
 mod test;
 
+#[cfg(test)]
+mod test_variable;

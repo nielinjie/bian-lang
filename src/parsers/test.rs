@@ -5,7 +5,7 @@ use crate::{
 use core::fmt::Debug;
 
 #[test]
-fn number_test() {
+fn number_simple() {
     let r = number("1234");
     ok_eq(r, Expr::Int(1234));
     let r0 = number("02");
@@ -14,7 +14,7 @@ fn number_test() {
     assert!(re.is_err());
 }
 #[test]
-fn symbol_test() {
+fn symbol_simple() {
     let r = symbol("+");
     ok_eq(r, Operator::Plus);
 }
@@ -31,7 +31,7 @@ fn sample_expr() -> Expr {
     Expr::Block(vec![sample_node()]).clone()
 }
 #[test]
-fn add_sub_test() {
+fn add_sub_simple() {
     let r = add_sub("1+2");
     ok_eq(r, Expr::binary_expr("+", 1, 2));
     let r1 = add_sub("1 + 3");

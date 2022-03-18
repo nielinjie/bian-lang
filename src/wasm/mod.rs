@@ -1,17 +1,20 @@
-
 use metered_wasmi::RuntimeValue;
-use parity_wasm::elements::{
-    ExportEntry, FuncBody, Instruction, Instructions, Internal, Module, ValueType,
-};
 use metered_wasmi::{ImportsBuilder, ModuleInstance, NopExternals};
+use parity_wasm::elements::{
+    ExportEntry, FuncBody, Instruction, Instructions, Internal, Local, Module, ValueType,
+};
 
-fn append_to_new<I:Clone>(v: Vec<I>, item: I) -> Vec<I> {
+fn append_to_new<I: Clone>(v: Vec<I>, item: I) -> Vec<I> {
     let mut re = v.clone();
     re.push(item);
     re
     // Vector::from(v).push_back(item).
 }
-pub fn module_with_single_function(codes: Vec<Instruction>,name: Option<&str> ) -> Module {
+pub fn module_with_single_function(
+    codes: Vec<Instruction>,
+    name: Option<&str>,
+    locals: Option<Vec<Local>>,
+) -> Module {
     use parity_wasm::builder;
 
     builder::module()
@@ -20,16 +23,18 @@ pub fn module_with_single_function(codes: Vec<Instruction>,name: Option<&str> ) 
         .with_return_type(Some(ValueType::I32))
         .build()
         .with_body(FuncBody::new(
-            vec![],
+            locals.unwrap_or_default(),
             Instructions::new(append_to_new(codes, Instruction::End)),
         ))
         .build()
-        .with_export(ExportEntry::new(name.unwrap_or("test").to_string(), Internal::Function(0)))
+        .with_export(ExportEntry::new(
+            name.unwrap_or("test").to_string(),
+            Internal::Function(0),
+        ))
         .build()
 }
-pub fn run_module(module:Module) -> RuntimeValue{
+pub fn run_module(module: Module) -> RuntimeValue {
     module.to_bytes().map(|b| run(b)).unwrap()
-    
 }
 fn run(wasm: Vec<u8>) -> RuntimeValue {
     let module = metered_wasmi::Module::from_buffer(&wasm).expect("failed to load wasm");
@@ -49,4 +54,6 @@ fn run(wasm: Vec<u8>) -> RuntimeValue {
     result
 }
 #[cfg(test)]
-mod test;
+pub mod test;
+#[cfg(test)]
+pub mod test_variable;
