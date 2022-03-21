@@ -45,14 +45,41 @@ fn add_sub_simple() {
 fn some_case_for_ws() {
     let strings = vec!["1+3-2", " 1+3-2 ", "1+ 3-2"];
     for text in strings.into_iter() {
-        let r2 = expr(text);
-        ok_eq(r2, sample_expr());
+        let r2 = statement(text);
+        ok_eq(r2, sample_node());
     }
+}
+#[test]
+fn statement_all() {
+    let str = " 1+2 ";
+    let ast = statement(str);
+    let r = Expr::binary_expr("+", 1, 2);
+    ok_eq(ast, r);
+    let str = " 1+2 \r\n";
+    let ast = statement(str);
+    let r = Expr::binary_expr("+", 1, 2);
+    ok_eq(ast, r);
+}
+
+#[test]
+fn block_simple() {
+    let s = "2+1
+    1+2
+    2+1
+    6+7";
+    let ast = block(s);
+    let re = Expr::Block(vec![
+        Expr::binary_expr("+", 2, 1),
+        Expr::binary_expr("+", 1, 2),
+        Expr::binary_expr("+", 2, 1),
+        Expr::binary_expr("+", 6, 7),
+    ]);
+    ok_eq(ast, re);
 }
 fn expr_int(i: i32) -> Box<Expr> {
     Box::new(Expr::Int(i))
 }
- impl Expr {
+impl Expr {
     pub fn binary_expr(op: &str, l: i32, r: i32) -> Self {
         Expr::BinaryExpr {
             op: match op {
@@ -66,7 +93,7 @@ fn expr_int(i: i32) -> Box<Expr> {
     }
 }
 
-fn ok_eq<T, E>(r: Result<(&str, T), E>, eq: T)
+pub fn ok_eq<T, E>(r: Result<(&str, T), E>, eq: T)
 where
     T: PartialEq + Debug,
     E: Debug,

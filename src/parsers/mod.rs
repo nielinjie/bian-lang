@@ -1,10 +1,16 @@
+use std::iter::once;
+
 use crate::ast::*;
 use nom::{
-    character::complete::{char, multispace0, one_of},
-    combinator::recognize,
+    branch::alt,
+    bytes::complete::tag,
+    character::complete::{
+        alpha1, alphanumeric1, char, line_ending, multispace0, newline, one_of, space0,
+    },
+    combinator::{map, recognize},
     error::{ErrorKind, FromExternalError, ParseError},
-    multi::{many0, many1},
-    sequence::{delimited, pair, terminated, tuple},
+    multi::{many0, many1, separated_list1},
+    sequence::{delimited, pair, preceded, terminated, tuple},
     IResult,
 };
 fn ws<'a, F: 'a, O, E: ParseError<&'a str>>(
@@ -13,8 +19,16 @@ fn ws<'a, F: 'a, O, E: ParseError<&'a str>>(
 where
     F: FnMut(&'a str) -> IResult<&'a str, O, E>,
 {
-    delimited(multispace0, inner, multispace0)
+    delimited(space0, inner, space0)
 }
+// fn line<'a, F: 'a, O, E: ParseError<&'a str>>(
+//     inner: F,
+// ) -> impl FnMut(&'a str) -> IResult<&'a str, O, E>
+// where
+//     F: FnMut(&'a str) -> IResult<&'a str, O, E>,
+// {
+//     delimited(multispace0, inner, multispace0)
+// }
 fn decimal(input: &str) -> IResult<&str, &str> {
     recognize(many1(terminated(one_of("0123456789"), many0(char('_')))))(input)
 }
@@ -25,20 +39,18 @@ pub fn number(i: &str) -> IResult<&str, Expr> {
             .map_err(|err| external_err(i, err))
     })
 }
+pub fn operatee(input: &str) -> IResult<&str, Expr> {
+    alt((number, variable_parser))(input)
+}
 pub fn symbol(i: &str) -> IResult<&str, Operator> {
-    ws(one_of("+-"))(i).map(|(i, m)| {
-        (
-            i,
-            match m {
-                '+' => Operator::Plus,
-                '-' => Operator::Minus,
-                _ => panic!(),
-            },
-        )
-    })
+    map(ws(one_of("+-")), |m| match m {
+        '+' => Operator::Plus,
+        '-' => Operator::Minus,
+        _ => panic!(),
+    })(i)
 }
 pub fn add_sub(i: &str) -> IResult<&str, Expr> {
-    tuple((number, many0(pair(ws(symbol), number))))(i).map(|(i, (first, v))| {
+    tuple((operatee, many0(pair(ws(symbol), operatee))))(i).map(|(i, (first, v))| {
         (
             i,
             v.into_iter().fold(first, |a, b| Expr::BinaryExpr {
@@ -49,8 +61,44 @@ pub fn add_sub(i: &str) -> IResult<&str, Expr> {
         )
     })
 }
-pub fn expr(i: &str) -> IResult<&str,Expr> {
-    ws(many1(add_sub))(i).map(|(i, v)| {(i,Expr::Block(v))})
+
+fn identifier(input: &str) -> IResult<&str, &str> {
+    recognize(pair(alpha1, many0(alt((alphanumeric1, tag("_"))))))(input)
+}
+pub fn variable_parser(input: &str) -> IResult<&str, Expr> {
+    map(ws(identifier), |ident| Expr::Variable(ident.to_string()))(input)
+}
+pub fn def_parser(i: &str) -> IResult<&str, Expr> {
+    map(preceded(tag("let"), ws(identifier)), |id| {
+        Expr::VarDef(id.to_string())
+    })(i)
+}
+pub fn assign_par(input: &str) -> IResult<&str, Expr> {
+    map(tuple((identifier, ws(tag("=")), add_sub)), |(i, _v, e)| {
+        Expr::Assign(i.to_string(), Box::new(e))
+    })(input)
+}
+
+pub fn def_and_assign_par(input: &str) -> IResult<&str, Expr> {
+    map(
+        tuple((ws(tag("let")), ws(identifier), ws(tag("=")), ws(add_sub))),
+        |(_l, i,  _v,e)| {
+            Expr::Block(vec![
+                Expr::VarDef(i.to_string()),
+                Expr::Assign(i.to_string(), Box::new(e)),
+            ])
+        },
+    )(input)
+}
+pub fn statement(input: &str) -> IResult<&str, Expr> {
+    ws(alt((def_and_assign_par,def_parser, assign_par, add_sub, variable_parser,)))(input)
+}
+pub fn block(i: &str) -> IResult<&str, Expr> {
+    // map(
+    //     pair(statement, many0(preceded(newline, statement))),
+    //     |(e, v)| Expr::Block(once(e).chain(v).collect::<Vec<Expr>>()),
+    // )(i)
+    map(separated_list1(newline, statement), |v| Expr::Block(v))(i)
 }
 
 fn external_err(i: &str, err: std::num::ParseIntError) -> nom::Err<nom::error::Error<&str>> {

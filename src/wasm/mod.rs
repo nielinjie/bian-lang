@@ -4,11 +4,16 @@ use parity_wasm::elements::{
     ExportEntry, FuncBody, Instruction, Instructions, Internal, Local, Module, ValueType,
 };
 
+use crate::ast::compile::Compiling;
+
 fn append_to_new<I: Clone>(v: Vec<I>, item: I) -> Vec<I> {
     let mut re = v.clone();
     re.push(item);
     re
     // Vector::from(v).push_back(item).
+}
+pub fn module_by_compiling(compiling:Compiling) -> Module {
+    module_with_single_function(compiling.instructions,None,Some(compiling.locals.into_iter().map(|c| Local::new(1, ValueType::I32)).collect()))
 }
 pub fn module_with_single_function(
     codes: Vec<Instruction>,
