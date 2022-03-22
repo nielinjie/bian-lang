@@ -72,15 +72,15 @@ fn sample_add_by_builder() -> Vec<u8> {
 
 #[test]
 fn sample_run() {
-    assert_eq!(run(sample_wasm()), RuntimeValue::I32(1337));
+    assert_run(sample_wasm(), RuntimeValue::I32(1337));
 }
 #[test]
 fn sample_builder_run() {
-    assert_eq!(run(sample_by_builder()), RuntimeValue::I32(1337));
+    assert_run(sample_by_builder(), RuntimeValue::I32(1337));
 }
 #[test]
 fn sample_add_builder_run() {
-    assert_eq!(run(sample_add_by_builder()), RuntimeValue::I32(3));
+    assert_run(sample_add_by_builder(), RuntimeValue::I32(3));
 }
 
 #[test]
@@ -92,17 +92,23 @@ fn sample_variable_run() {
     )
 }
 
-pub fn with_instructions(
-    instructions: Vec<Instruction>,
-    locals: Vec<Local>,
-    result: RuntimeValue,
-) {
-    assert_eq!(
-        run(
+pub fn with_instructions(instructions: Vec<Instruction>, locals: Vec<Local>, result: RuntimeValue) {
+    assert_run(
             module_with_single_function(instructions, None, Some(locals))
                 .to_bytes()
                 .unwrap()
-        ),
+        ,
         result
     )
 }
+
+fn assert_run(module:Vec<u8>,re:RuntimeValue){
+        let r=run(module);
+        match r{
+             Ok(rv) => assert_eq!(rv,re),
+             r => panic!("{:?}",r)
+        }
+
+}
+
+mod variable;

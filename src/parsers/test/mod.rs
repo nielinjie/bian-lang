@@ -27,9 +27,7 @@ fn sample_node() -> Expr {
     })
     .clone()
 }
-fn sample_expr() -> Expr {
-    Expr::Block(vec![sample_node()]).clone()
-}
+
 #[test]
 fn add_sub_simple() {
     let r = add_sub("1+2");
@@ -103,3 +101,6 @@ where
     println!("{:?}", eq);
     assert_eq!(eq, r.ok().unwrap().1);
 }
+
+mod variable;
+mod error;

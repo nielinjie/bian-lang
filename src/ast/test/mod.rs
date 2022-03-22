@@ -41,3 +41,5 @@ fn const_add_sub() {
         ].into()
     )
 }
+
+mod variable;

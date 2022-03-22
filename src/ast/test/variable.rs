@@ -1,8 +1,8 @@
 use parity_wasm::elements::Instruction::*;
 
-use crate::ast::Operator;
+use crate::{ast::Operator, Error};
 
-use super::{
+use super::super::{
     compile::{Compile, Compiling},
     Expr,
 };
@@ -43,7 +43,7 @@ fn variable_existed_error() {
         r,
         Compiling {
             locals: vec!["foo".to_string()],
-            errors: vec!["existed var - foo".to_string()],
+            errors: vec![Error::CompileError("existed var - foo".to_string())],
             ..Compiling::default()
         }
     );
@@ -75,7 +75,7 @@ fn variable_and_unknown() {
         r,
         Compiling {
             locals: vec!["foo".to_string()],
-            errors: vec!["unknown var - bar".to_string()],
+            errors: vec![Error::CompileError("unknown var - bar".to_string())],
             ..Compiling::default()
         }
     );
@@ -109,7 +109,7 @@ fn variable_set_unknown() {
         Compiling {
             instructions: vec![I32Const(42)],
             locals: vec!["foo".to_string()],
-            errors: vec!["unknown var - bar".to_string()],
+            errors: vec![Error::CompileError("unknown var - bar".to_string())],
         }
     );
 }

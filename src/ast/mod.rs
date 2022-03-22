@@ -23,5 +23,3 @@ pub mod compile;
 #[cfg(test)]
 mod test;
 
-#[cfg(test)]
-mod test_variable;

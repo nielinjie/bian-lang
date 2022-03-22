@@ -1,13 +1,9 @@
-use std::iter::once;
-
 use crate::ast::*;
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{
-        alpha1, alphanumeric1, char, line_ending, multispace0, newline, one_of, space0,
-    },
-    combinator::{map, recognize},
+    character::complete::{alpha1, alphanumeric1, char, newline, one_of, space0},
+    combinator::{eof, map, map_res, recognize},
     error::{ErrorKind, FromExternalError, ParseError},
     multi::{many0, many1, separated_list1},
     sequence::{delimited, pair, preceded, terminated, tuple},
@@ -21,23 +17,14 @@ where
 {
     delimited(space0, inner, space0)
 }
-// fn line<'a, F: 'a, O, E: ParseError<&'a str>>(
-//     inner: F,
-// ) -> impl FnMut(&'a str) -> IResult<&'a str, O, E>
-// where
-//     F: FnMut(&'a str) -> IResult<&'a str, O, E>,
-// {
-//     delimited(multispace0, inner, multispace0)
-// }
 fn decimal(input: &str) -> IResult<&str, &str> {
     recognize(many1(terminated(one_of("0123456789"), many0(char('_')))))(input)
 }
 pub fn number(i: &str) -> IResult<&str, Expr> {
-    decimal(i).and_then(|(i, o)| {
-        let n = o.parse::<i32>();
-        n.map(|n| (i, Expr::Int(n)))
-            .map_err(|err| external_err(i, err))
-    })
+    map_res(decimal, |i| {
+        let n = i.parse::<i32>();
+        n.map(|n| Expr::Int(n))
+    })(i)
 }
 pub fn operatee(input: &str) -> IResult<&str, Expr> {
     alt((number, variable_parser))(input)
@@ -82,7 +69,7 @@ pub fn assign_par(input: &str) -> IResult<&str, Expr> {
 pub fn def_and_assign_par(input: &str) -> IResult<&str, Expr> {
     map(
         tuple((ws(tag("let")), ws(identifier), ws(tag("=")), ws(add_sub))),
-        |(_l, i,  _v,e)| {
+        |(_l, i, _v, e)| {
             Expr::Block(vec![
                 Expr::VarDef(i.to_string()),
                 Expr::Assign(i.to_string(), Box::new(e)),
@@ -91,16 +78,20 @@ pub fn def_and_assign_par(input: &str) -> IResult<&str, Expr> {
     )(input)
 }
 pub fn statement(input: &str) -> IResult<&str, Expr> {
-    ws(alt((def_and_assign_par,def_parser, assign_par, add_sub, variable_parser,)))(input)
+    ws(alt((
+        def_and_assign_par,
+        def_parser,
+        assign_par,
+        add_sub,
+        variable_parser,
+    )))(input)
 }
 pub fn block(i: &str) -> IResult<&str, Expr> {
-    // map(
-    //     pair(statement, many0(preceded(newline, statement))),
-    //     |(e, v)| Expr::Block(once(e).chain(v).collect::<Vec<Expr>>()),
-    // )(i)
     map(separated_list1(newline, statement), |v| Expr::Block(v))(i)
 }
-
+pub fn program(input: &str) -> IResult<&str, Expr> {
+    terminated(block, eof)(input)
+}
 fn external_err(i: &str, err: std::num::ParseIntError) -> nom::Err<nom::error::Error<&str>> {
     nom::Err::Error(FromExternalError::from_external_error(
         i,
@@ -111,5 +102,3 @@ fn external_err(i: &str, err: std::num::ParseIntError) -> nom::Err<nom::error::E
 
 #[cfg(test)]
 mod test;
-#[cfg(test)]
-mod test_variable;

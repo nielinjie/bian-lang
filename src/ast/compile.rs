@@ -2,6 +2,8 @@ use std::iter::empty;
 
 use parity_wasm::elements::Instruction;
 
+use crate::Error;
+
 use super::{Expr, Operator};
 
 pub trait Compile {
@@ -29,7 +31,7 @@ impl Compile for Expr {
                         ..Compiling::default()
                     },
                     Some(_) => Compiling {
-                        errors: vec![format!("existed var - {}", name)],
+                        errors: vec![Error::CompileError(format!("existed var - {}", name))],
                         ..Compiling::default()
                     },
                 };
@@ -42,7 +44,7 @@ impl Compile for Expr {
                         ..Compiling::default()
                     },
                     None => Compiling {
-                        errors: vec![format!("unknown var - {}", name)],
+                        errors: vec![Error::CompileError(format!("unknown var - {}", name))],
                         ..Compiling::default()
                     },
                 };
@@ -56,14 +58,14 @@ impl Compile for Expr {
                         ..Compiling::default()
                     },
                     None => Compiling {
-                        errors: vec![format!("unknown var - {}", name)],
+                        errors: vec![Error::CompileError( format!("unknown var - {}", name))],
                         ..Compiling::default()
                     },
                 };
                 value_compiled.merge(new)
             }
             Expr::Block(v) => v.into_iter().fold(compiling, |c, a| a.compile(c)),
-            _ => unimplemented!(),
+            // _ => unimplemented!(),
         }
     }
 }
@@ -72,7 +74,7 @@ impl Compile for Expr {
 pub struct Compiling {
     pub instructions: Vec<Instruction>,
     pub locals: Vec<String>,
-    pub errors: Vec<String>,
+    pub errors: Vec<Error>,
 }
 impl Compiling {
     pub fn merge(self, other: Compiling) -> Compiling {

@@ -1,4 +1,5 @@
-use metered_wasmi::RuntimeValue;
+
+use metered_wasmi::{RuntimeValue, Error};
 use metered_wasmi::{ImportsBuilder, ModuleInstance, NopExternals};
 use parity_wasm::elements::{
     ExportEntry, FuncBody, Instruction, Instructions, Internal, Local, Module, ValueType,
@@ -13,7 +14,7 @@ fn append_to_new<I: Clone>(v: Vec<I>, item: I) -> Vec<I> {
     // Vector::from(v).push_back(item).
 }
 pub fn module_by_compiling(compiling:Compiling) -> Module {
-    module_with_single_function(compiling.instructions,None,Some(compiling.locals.into_iter().map(|c| Local::new(1, ValueType::I32)).collect()))
+    module_with_single_function(compiling.instructions,None,Some(compiling.locals.into_iter().map(|_name| Local::new(1, ValueType::I32)).collect()))
 }
 pub fn module_with_single_function(
     codes: Vec<Instruction>,
@@ -38,27 +39,24 @@ pub fn module_with_single_function(
         ))
         .build()
 }
-pub fn run_module(module: Module) -> RuntimeValue {
-    module.to_bytes().map(|b| run(b)).unwrap()
+pub fn run_module(module: Module) -> Result<RuntimeValue,Error> {
+    let wasm = module.to_bytes().unwrap();
+    run(wasm)
 }
-fn run(wasm: Vec<u8>) -> RuntimeValue {
-    let module = metered_wasmi::Module::from_buffer(&wasm).expect("failed to load wasm");
+fn run(wasm: Vec<u8>) -> Result<RuntimeValue,Error> {
+    let module = metered_wasmi::Module::from_buffer(&wasm)?;
 
     // Instantiate a module with empty imports and
     // assert that there is no `start` function.
     let instance = ModuleInstance::new(&module, &ImportsBuilder::default())
-        .expect("failed to instantiate wasm module")
-        .assert_no_start();
+        ?.assert_no_start();
 
     // Finally, invoke the exported function "test" with no parameters
     // and empty external function executor.
     let result = instance
         .invoke_export("test", &[], &mut NopExternals)
-        .unwrap()
-        .unwrap();
-    result
+        ?.unwrap();
+    Ok(result)
 }
 #[cfg(test)]
 pub mod test;
-#[cfg(test)]
-pub mod test_variable;
