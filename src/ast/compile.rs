@@ -1,8 +1,9 @@
+
 use std::iter::empty;
 
 use parity_wasm::elements::Instruction;
 
-use crate::Error;
+use crate::{Error};
 
 use super::{Expr, Operator};
 
@@ -69,7 +70,6 @@ impl Compile for Expr {
         }
     }
 }
-
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Compiling {
     pub instructions: Vec<Instruction>,

@@ -1,5 +1,4 @@
 extern crate metered_wasmi;
-extern crate wabt;
 
 use super::*;
 use metered_wasmi::RuntimeValue;
@@ -47,18 +46,7 @@ fn simple() {
     );
 }
 
-fn sample_wasm() -> Vec<u8> {
-    wabt::wat2wasm(
-        r#"
-            (module
-                (func (export "test") (result i32)
-                    i32.const 1337
-                )
-            )
-            "#,
-    )
-    .unwrap()
-}
+
 fn sample_by_builder() -> Vec<u8> {
     module_with_single_function(vec![I32Const(1337)], None, None)
         .to_bytes()
@@ -70,10 +58,7 @@ fn sample_add_by_builder() -> Vec<u8> {
         .unwrap()
 }
 
-#[test]
-fn sample_run() {
-    assert_run(sample_wasm(), RuntimeValue::I32(1337));
-}
+
 #[test]
 fn sample_builder_run() {
     assert_run(sample_by_builder(), RuntimeValue::I32(1337));

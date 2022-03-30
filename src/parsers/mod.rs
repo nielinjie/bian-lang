@@ -4,7 +4,7 @@ use nom::{
     bytes::complete::tag,
     character::complete::{alpha1, alphanumeric1, char, newline, one_of, space0},
     combinator::{eof, map, map_res, recognize},
-    error::{ErrorKind, FromExternalError, ParseError},
+    error::{ParseError},
     multi::{many0, many1, separated_list1},
     sequence::{delimited, pair, preceded, terminated, tuple},
     IResult,
@@ -91,13 +91,6 @@ pub fn block(i: &str) -> IResult<&str, Expr> {
 }
 pub fn program(input: &str) -> IResult<&str, Expr> {
     terminated(block, eof)(input)
-}
-fn external_err(i: &str, err: std::num::ParseIntError) -> nom::Err<nom::error::Error<&str>> {
-    nom::Err::Error(FromExternalError::from_external_error(
-        i,
-        ErrorKind::MapRes,
-        err,
-    ))
 }
 
 #[cfg(test)]

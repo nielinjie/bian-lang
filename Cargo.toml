@@ -2,12 +2,12 @@
 name = "bian-lang"
 version = "0.1.0"
 edition = "2021"
-
+cart-type = "rlib"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 nom = "^7.1.0"
 parity-wasm = "^0.40.0"
-wabt = "*"
 metered_wasmi = "*"
 im = "*"
+serde = { version = "1.0", features = ["derive"] }
