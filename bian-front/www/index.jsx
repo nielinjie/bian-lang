@@ -25,7 +25,16 @@ function App() {
   return (
     <ReflexContainer orientation="horizontal">
       <ReflexElement>
-        <div className="title-big">Bian-lang</div>
+        <header>
+          <span className="title-big">Bian Pad</span>
+          {/* <span className="title">a code demo pad for bian-lang</span> */}
+          <span className="title-small">
+            a code demo pad for bian-lang{" "}
+            <a target="_blank" href="https://github.com/nielinjie/bian-lang">
+              https://github.com/nielinjie/bian-lang
+            </a>
+          </span>
+        </header>
       </ReflexElement>
       <ReflexElement>
         <ReflexContainer orientation="vertical" style={{ height: "90vh" }}>
