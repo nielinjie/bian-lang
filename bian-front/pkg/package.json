@@ -1,0 +1,13 @@
+{
+  "name": "bian-front-wasm",
+  "version": "1.0.0",
+  "files": [
+    "bian_front_wasm_bg.wasm",
+    "bian_front_wasm.js",
+    "bian_front_wasm_bg.js",
+    "bian_front_wasm.d.ts"
+  ],
+  "module": "bian_front_wasm.js",
+  "types": "bian_front_wasm.d.ts",
+  "sideEffects": false
+}
