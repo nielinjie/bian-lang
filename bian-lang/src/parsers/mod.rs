@@ -36,7 +36,7 @@ pub fn symbol(i: &str) -> IResult<&str, Operator> {
         _ => panic!(),
     })(i)
 }
-pub fn add_sub(i: &str) -> IResult<&str, Expr> {
+pub fn compute_parser(i: &str) -> IResult<&str, Expr> {
     tuple((operatee, many0(pair(ws(symbol), operatee))))(i).map(|(i, (first, v))| {
         (
             i,
@@ -61,14 +61,14 @@ pub fn def_parser(i: &str) -> IResult<&str, Expr> {
     })(i)
 }
 pub fn assign_par(input: &str) -> IResult<&str, Expr> {
-    map(tuple((identifier, ws(tag("=")), add_sub)), |(i, _v, e)| {
+    map(tuple((identifier, ws(tag("=")), compute_parser)), |(i, _v, e)| {
         Expr::Assign(i.to_string(), Box::new(e))
     })(input)
 }
 
 pub fn def_and_assign_par(input: &str) -> IResult<&str, Expr> {
     map(
-        tuple((ws(tag("let")), ws(identifier), ws(tag("=")), ws(add_sub))),
+        tuple((ws(tag("let")), ws(identifier), ws(tag("=")), ws(compute_parser))),
         |(_l, i, _v, e)| {
             Expr::Block(vec![
                 Expr::VarDef(i.to_string()),
@@ -82,7 +82,7 @@ pub fn statement(input: &str) -> IResult<&str, Expr> {
         def_and_assign_par,
         def_parser,
         assign_par,
-        add_sub,
+        compute_parser,
         variable_parser,
     )))(input)
 }

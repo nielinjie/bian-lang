@@ -1,9 +1,8 @@
-
 use std::iter::empty;
 
 use parity_wasm::elements::Instruction;
 
-use crate::{Error};
+use crate::Error;
 
 use super::{Expr, Operator};
 
@@ -59,7 +58,7 @@ impl Compile for Expr {
                         ..Compiling::default()
                     },
                     None => Compiling {
-                        errors: vec![Error::CompileError( format!("unknown var - {}", name))],
+                        errors: vec![Error::CompileError(format!("unknown var - {}", name))],
                         ..Compiling::default()
                     },
                 };

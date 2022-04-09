@@ -1,4 +1,4 @@
-use super::{add_sub, assign_par, def_and_assign_par, def_parser, test::ok_eq, variable_parser};
+use super::{compute_parser, assign_par, def_and_assign_par, def_parser, test::ok_eq, variable_parser};
 use crate::ast::{Expr, Operator};
 use Expr::*;
 
@@ -18,7 +18,7 @@ fn simple_variable() {
 #[test]
 fn var_in_add_sub() {
     let s = " a+1";
-    let ast = add_sub(s);
+    let ast = compute_parser(s);
     ok_eq(
         ast,
         BinaryExpr {
@@ -31,7 +31,7 @@ fn var_in_add_sub() {
 #[test]
 fn var_in_add_sub_three() {
     let s = "b- a+1";
-    let ast = add_sub(s);
+    let ast = compute_parser(s);
     let ast1 = BinaryExpr {
         op: Operator::Minus,
         left: Box::new(Variable("b".to_string())),

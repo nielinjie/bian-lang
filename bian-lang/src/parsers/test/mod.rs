@@ -30,11 +30,11 @@ fn sample_node() -> Expr {
 
 #[test]
 fn add_sub_simple() {
-    let r = add_sub("1+2");
+    let r = compute_parser("1+2");
     ok_eq(r, Expr::binary_expr("+", 1, 2));
-    let r1 = add_sub("1 + 3");
+    let r1 = compute_parser("1 + 3");
     assert!(r1.is_ok());
-    let r2 = add_sub("1 +3 -2");
+    let r2 = compute_parser("1 +3 -2");
     assert!(r2.is_ok());
     ok_eq(r2, sample_node());
 }
