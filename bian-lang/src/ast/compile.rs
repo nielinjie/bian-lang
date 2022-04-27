@@ -91,7 +91,7 @@ impl Compile for Expr {
                 };
                 value_compiled.merge(new)
             }
-            Composite(v) => v.into_iter().fold(compiling, |c, a| a.compile(c)),
+            Seq(v) => v.into_iter().fold(compiling, |c, a| a.compile(c)),
             // _ => unimplemented!(),
         }
     }

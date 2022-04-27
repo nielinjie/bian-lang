@@ -70,7 +70,7 @@ fn def_and_assign() {
     let ast = def_and_assign_par(s);
     ok_eq(
         ast,
-        Composite(vec![
+        Seq(vec![
             VarDef("a".to_string()),
             Assign(
                 "a".to_string(),

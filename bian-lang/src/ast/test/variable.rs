@@ -131,7 +131,7 @@ fn variable_scene() {
     let a3 = Assign("b".to_string(), Box::new(Literal(42)));
     let a4 = Assign("a".to_string(), Box::new(Variable("b".to_string())));
     let a5 = Variable("a".to_string());
-    let c = vec![a1, a2, a3, a4, Eval(a5)]
+    let c = vec![a1, a2, a3, a4, Eval(Box::new(a5))]
         .into_iter()
         .fold(Compiling::default(), |c, a| a.compile(c));
     assert_eq!(
@@ -172,7 +172,7 @@ fn variable_scene_plus() {
         }),
     );
     let a5 = Variable("a".to_string());
-    let b = Composite(vec![a1, a2, a3, a4, Eval(a5)]);
+    let b = Seq(vec![a1, a2, a3, a4, Eval(Box::new(a5))]);
     let c = b.compile(Compiling::default());
     assert_eq!(
         c,
@@ -229,7 +229,7 @@ fn variable_scene_plus_three() {
     );
     let a5 = Variable("c".to_string());
 
-    let b = Composite(vec![a1, a2, a, a3, a4, a41, Eval(a5)]);
+    let b = Seq(vec![a1, a2, a, a3, a4, a41, Eval(Box::new(a5))]);
     let c = b.compile(Compiling::default());
     assert_eq!(
         c,

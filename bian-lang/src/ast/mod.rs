@@ -5,15 +5,13 @@ pub enum Operator {
 }
 #[derive(PartialEq, Debug, Clone)]
 pub enum Expr {
-    Eval(EvalExpr),
+    Eval(Box<EvalExpr>),
     VarDef(String),
     Assign(String, Box<EvalExpr>),
     Return(Box<EvalExpr>),
-    Composite(Vec<Expr>),
-    // Block(Vec<Expr>),
+    Seq(Vec<Expr>),
 }
 
-//求值表达式可以是literal、binary、variable
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum EvalExpr {
@@ -26,7 +24,6 @@ pub enum EvalExpr {
     Variable(String),
 }
 #[derive(PartialEq, Debug, Clone)]
-
 pub struct Statement(pub Expr);
 
 pub mod compile;

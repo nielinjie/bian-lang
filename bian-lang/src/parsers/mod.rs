@@ -10,6 +10,7 @@ use nom::{
 };
 
 use crate::ast::{EvalExpr, Expr, Operator, Statement};
+
 fn ws<'a, F: 'a, O, E: ParseError<&'a str>>(
     inner: F,
 ) -> impl FnMut(&'a str) -> IResult<&'a str, O, E>
@@ -38,19 +39,20 @@ pub fn operator(i: &str) -> IResult<&str, Operator> {
     })(i)
 }
 pub fn compute_parser(i: &str) -> IResult<&str, EvalExpr> {
-    tuple((operatee, many0(pair(ws(operator), operatee))))(i).map(|(i, (first, v))| {
-        (
-            i,
+    map(
+        tuple((operatee, many0(pair(ws(operator), operatee)))),
+        |(first, v)| {
             v.into_iter().fold(first, |a, b| EvalExpr::BinaryExpr {
                 op: b.0,
                 left: Box::new(a),
                 right: Box::new(b.1),
-            }),
-        )
-    })
+            })
+        },
+    )(i)
 }
 
 fn identifier(input: &str) -> IResult<&str, &str> {
+    //TODO 排除keyword：let、return
     recognize(pair(alpha1, many0(alt((alphanumeric1, tag("_"))))))(input)
 }
 pub fn variable_parser(input: &str) -> IResult<&str, EvalExpr> {
@@ -86,7 +88,7 @@ pub fn def_and_assign_par(input: &str) -> IResult<&str, Expr> {
             ws(compute_parser),
         )),
         |(_l, i, _v, e)| {
-            Expr::Composite(vec![
+            Expr::Seq(vec![
                 Expr::VarDef(i.to_string()),
                 Expr::Assign(i.to_string(), Box::new(e)),
             ])
@@ -96,7 +98,7 @@ pub fn def_and_assign_par(input: &str) -> IResult<&str, Expr> {
 pub fn eval_parse(input: &str) -> IResult<&str, Expr> {
     map(
         ws(alt((compute_parser, variable_parser))),
-        |eval: EvalExpr| Expr::Eval(eval),
+        |eval: EvalExpr| Expr::Eval(Box::new(eval)),
     )(input)
 }
 pub fn statement(input: &str) -> IResult<&str, Expr> {

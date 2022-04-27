@@ -45,7 +45,7 @@ fn some_case_for_ws() {
     let strings = vec!["1+3-2", " 1+3-2 ", "1+ 3-2"];
     for text in strings.into_iter() {
         let r2 = statement(text);
-        ok_eq(r2, Eval(sample_node()));
+        ok_eq(r2, Eval(Box::new(sample_node())));
     }
 }
 #[test]
@@ -53,11 +53,11 @@ fn statement_all() {
     let str = " 1+2 ";
     let ast = statement(str);
     let r = binary_expr("+", 1, 2);
-    ok_eq(ast, Eval(r));
+    ok_eq(ast, Eval(Box::new(r)));
     let str = " 1+2 \r\n";
     let ast = statement(str);
     let r = binary_expr("+", 1, 2);
-    ok_eq(ast, Eval(r));
+    ok_eq(ast, Eval(Box::new(r)));
 }
 
 // #[test]
