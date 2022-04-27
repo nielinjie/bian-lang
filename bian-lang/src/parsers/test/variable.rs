@@ -1,6 +1,7 @@
 use super::{compute_parser, assign_par, def_and_assign_par, def_parser, test::ok_eq, variable_parser};
-use crate::ast::{Expr, Operator};
+use crate::ast::{Expr, Operator,EvalExpr};
 use Expr::*;
+use EvalExpr::*;
 
 #[test]
 fn simple_let() {
@@ -24,7 +25,7 @@ fn var_in_add_sub() {
         BinaryExpr {
             op: Operator::Plus,
             left: Box::new(Variable("a".to_string())),
-            right: Box::new(Int(1)),
+            right: Box::new(Literal(1)),
         },
     );
 }
@@ -42,7 +43,7 @@ fn var_in_add_sub_three() {
         BinaryExpr {
             op: Operator::Plus,
             left: Box::new(ast1),
-            right: Box::new(Int(1)),
+            right: Box::new(Literal(1)),
         },
     );
 }
@@ -57,7 +58,7 @@ fn assign_simple() {
             Box::new(BinaryExpr {
                 op: Operator::Plus,
                 left: Box::new(Variable("b".to_string())),
-                right: Box::new(Int(1)),
+                right: Box::new(Literal(1)),
             }),
         ),
     );
@@ -69,14 +70,14 @@ fn def_and_assign() {
     let ast = def_and_assign_par(s);
     ok_eq(
         ast,
-        Block(vec![
+        Composite(vec![
             VarDef("a".to_string()),
             Assign(
                 "a".to_string(),
                 Box::new(BinaryExpr {
                     op: Operator::Plus,
                     left: Box::new(Variable("b".to_string())),
-                    right: Box::new(Int(1)),
+                    right: Box::new(Literal(1)),
                 }),
             ),
         ]),
