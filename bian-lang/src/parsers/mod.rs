@@ -9,7 +9,7 @@ use nom::{
     IResult,
 };
 
-use crate::ast::{EvalExpr, Expr, Operator, Statement};
+use crate::ast::{EvalExpr, Expr, Operator, Statement, Block};
 
 fn ws<'a, F: 'a, O, E: ParseError<&'a str>>(
     inner: F,
@@ -113,9 +113,9 @@ pub fn statement(input: &str) -> IResult<&str, Expr> {
 pub fn block(i: &str) -> IResult<&str, Vec<Expr>> {
     separated_list1(newline, statement)(i)
 }
-pub fn program(input: &str) -> IResult<&str, Vec<Statement>> {
+pub fn program(input: &str) -> IResult<&str, Block> {
     map(terminated(block, eof), |ve| {
-        ve.into_iter().map(Statement).collect()
+        Block(ve.into_iter().map(Statement).collect())
     })(input)
 }
 

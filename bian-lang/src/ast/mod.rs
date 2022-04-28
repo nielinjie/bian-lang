@@ -10,8 +10,8 @@ pub enum Expr {
     Assign(String, Box<EvalExpr>),
     Return(Box<EvalExpr>),
     Seq(Vec<Expr>),
+    IfElse(Box<EvalExpr>, Box<Block>, Box<Block>),
 }
-
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum EvalExpr {
@@ -25,7 +25,8 @@ pub enum EvalExpr {
 }
 #[derive(PartialEq, Debug, Clone)]
 pub struct Statement(pub Expr);
-
+#[derive(PartialEq, Debug, Clone)]
+pub struct Block(pub Vec<Statement>);
 pub mod compile;
 
 #[cfg(test)]

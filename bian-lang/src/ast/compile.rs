@@ -1,10 +1,11 @@
 use std::iter::empty;
 
-use parity_wasm::elements::Instruction;
+
+use parity_wasm::elements::{BlockType, Instruction};
 
 use crate::Error;
 
-use super::{EvalExpr, Expr, Operator};
+use super::{Block, EvalExpr, Expr, Operator};
 use super::{EvalExpr::*, Statement};
 use Expr::*;
 pub trait Compile {
@@ -19,12 +20,11 @@ impl Compile for Statement {
         }
     }
 }
-impl Compile for Vec<Statement> {
+impl Compile for Block {
     fn compile(&self, compiling: Compiling) -> Compiling {
-        self.into_iter().fold(compiling, |c, a| a.compile(c))
+        (&self.0).into_iter().fold(compiling, |c, a| a.compile(c))
     }
 }
-
 
 impl Compile for EvalExpr {
     fn compile(&self, compiling: Compiling) -> Compiling {
@@ -62,7 +62,7 @@ impl Compile for Expr {
     fn compile(&self, compiling: Compiling) -> Compiling {
         match self {
             Eval(eval) => eval.compile(compiling),
-            Return(ret)  => ret.compile(compiling),
+            Return(ret) => ret.compile(compiling),
             VarDef(name) => {
                 let new = match compiling.local_index(name) {
                     None => Compiling {
@@ -92,7 +92,17 @@ impl Compile for Expr {
                 value_compiled.merge(new)
             }
             Seq(v) => v.into_iter().fold(compiling, |c, a| a.compile(c)),
-            // _ => unimplemented!(),
+            IfElse(cond, then_b, else_b) => {
+                let cond_instructions = &cond.compile(compiling);
+                let then_b_instructions = then_b.compile(cond_instructions);
+                let else_b_instructions = else_b.compile(cond_instructions);
+                cond_instructions
+                    .merge(Instruction::If(BlockType::NoResult).into())
+                    .merge(then_b_instructions)
+                    .merge(Instruction::Else.into())
+                    .merge(else_b_instructions)
+                    .merge(Instruction::End.into())
+            } // _ => unimplemented!(),
         }
     }
 }
@@ -133,6 +143,14 @@ impl Into<Compiling> for Vec<Instruction> {
     fn into(self) -> Compiling {
         Compiling {
             instructions: empty().chain(self).collect(),
+            ..Compiling::default()
+        }
+    }
+}
+impl Into<Compiling> for Instruction {
+    fn into(self) -> Compiling {
+        Compiling {
+            instructions: vec![self],
             ..Compiling::default()
         }
     }
