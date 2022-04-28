@@ -12,7 +12,7 @@ use EvalExpr::*;
 #[test]
 fn var_def_compile() {
     let ast = VarDef("foo".to_string());
-    let result = ast.compile(Compiling::default());
+    let result = ast.compile(&Compiling::default());
     assert_eq!(
         result,
         Compiling {
@@ -25,8 +25,8 @@ fn var_def_compile() {
 fn variable_compile() {
     let ast = VarDef("foo".to_string());
     let ast2 = VarDef("bar".to_string());
-    let result = ast.compile(Compiling::default());
-    let r = ast2.compile(result);
+    let result = ast.compile(&Compiling::default());
+    let r = ast2.compile(&result);
     assert_eq!(
         r,
         Compiling {
@@ -39,8 +39,8 @@ fn variable_compile() {
 fn variable_existed_error() {
     let ast = VarDef("foo".to_string());
     let ast2 = VarDef("foo".to_string());
-    let result = ast.compile(Compiling::default());
-    let r = ast2.compile(result);
+    let result = ast.compile(&Compiling::default());
+    let r = ast2.compile(&result);
     assert_eq!(
         r,
         Compiling {
@@ -55,8 +55,8 @@ fn variable_existed_error() {
 fn variable_and_get() {
     let ast = VarDef("foo".to_string());
     let ast2 = Variable("foo".to_string());
-    let result = ast.compile(Compiling::default());
-    let r = ast2.compile(result);
+    let result = ast.compile(&Compiling::default());
+    let r = ast2.compile(&result);
     assert_eq!(
         r,
         Compiling {
@@ -71,8 +71,8 @@ fn variable_and_get() {
 fn variable_and_unknown() {
     let ast = VarDef("foo".to_string());
     let ast2 = Variable("bar".to_string());
-    let result = ast.compile(Compiling::default());
-    let r = ast2.compile(result);
+    let result = ast.compile(&Compiling::default());
+    let r = ast2.compile(&result);
     assert_eq!(
         r,
         Compiling {
@@ -88,8 +88,8 @@ fn variable_set() {
     let ast = VarDef("foo".to_string());
 
     let ast2 = Assign("foo".to_string(), Box::new(Literal(42)));
-    let result = ast.compile(Compiling::default());
-    let r = ast2.compile(result);
+    let result = ast.compile(&Compiling::default());
+    let r = ast2.compile(&result);
     assert_eq!(
         r,
         Compiling {
@@ -104,8 +104,8 @@ fn variable_set_unknown() {
     let ast = VarDef("foo".to_string());
 
     let ast2 = Assign("bar".to_string(), Box::new(Literal(42)));
-    let result = ast.compile(Compiling::default());
-    let r = ast2.compile(result);
+    let result = ast.compile(&Compiling::default());
+    let r = ast2.compile(&result);
     assert_eq!(
         r,
         Compiling {
@@ -133,7 +133,7 @@ fn variable_scene() {
     let a5 = Variable("a".to_string());
     let c = vec![a1, a2, a3, a4, Eval(Box::new(a5))]
         .into_iter()
-        .fold(Compiling::default(), |c, a| a.compile(c));
+        .fold(Compiling::default(), |c, a| a.compile(&c));
     assert_eq!(
         c,
         Compiling {
@@ -173,7 +173,7 @@ fn variable_scene_plus() {
     );
     let a5 = Variable("a".to_string());
     let b = Seq(vec![a1, a2, a3, a4, Eval(Box::new(a5))]);
-    let c = b.compile(Compiling::default());
+    let c = b.compile(&Compiling::default());
     assert_eq!(
         c,
         Compiling {
@@ -230,7 +230,7 @@ fn variable_scene_plus_three() {
     let a5 = Variable("c".to_string());
 
     let b = Seq(vec![a1, a2, a, a3, a4, a41, Eval(Box::new(a5))]);
-    let c = b.compile(Compiling::default());
+    let c = b.compile(&Compiling::default());
     assert_eq!(
         c,
         Compiling {

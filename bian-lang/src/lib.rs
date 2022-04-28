@@ -35,7 +35,7 @@ impl CompilingRepresent {
 
 pub fn compile(s: &str) -> Result<Compiling, Error> {
     let (_input, exp) = program(s).finish()?;
-    Ok(exp.compile(Compiling::default()))
+    Ok(exp.compile(&Compiling::default()))
 }
 
 pub fn run(s: &str,compiled:Option<Compiling>) -> Result<i32, Error> {

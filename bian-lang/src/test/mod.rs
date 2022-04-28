@@ -15,7 +15,7 @@ fn string_to_result(s: &str, re: i32) {
     let r = exp.unwrap();
     println!("{:?}", r);
     let ins = r.1
-    .compile(Compiling::default());
+    .compile(&Compiling::default());
     println!("{:?}", ins.instructions);
     println!("{:?}", ins.locals);
     let module = module_by_compiling(ins);

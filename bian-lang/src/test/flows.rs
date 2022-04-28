@@ -1,7 +1,7 @@
 use super::string_to_result;
 
 #[test]
-fn var_re_assign() {
+fn simple_if() {
     string_to_result(
         "let a
     a=2

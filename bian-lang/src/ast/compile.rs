@@ -1,6 +1,5 @@
 use std::iter::empty;
 
-
 use parity_wasm::elements::{BlockType, Instruction};
 
 use crate::Error;
@@ -9,10 +8,10 @@ use super::{Block, EvalExpr, Expr, Operator};
 use super::{EvalExpr::*, Statement};
 use Expr::*;
 pub trait Compile {
-    fn compile(&self, compiling: Compiling) -> Compiling;
+    fn compile(&self, compiling: &Compiling) -> Compiling;
 }
 impl Compile for Statement {
-    fn compile(&self, compiling: Compiling) -> Compiling {
+    fn compile(&self, compiling: &Compiling) -> Compiling {
         let Statement(e) = self;
         match e {
             Eval(_) => e.compile(compiling).merge(vec![Instruction::Drop].into()),
@@ -21,18 +20,20 @@ impl Compile for Statement {
     }
 }
 impl Compile for Block {
-    fn compile(&self, compiling: Compiling) -> Compiling {
-        (&self.0).into_iter().fold(compiling, |c, a| a.compile(c))
+    fn compile(&self, compiling: &Compiling) -> Compiling {
+        (&self.0)
+            .into_iter()
+            .fold(compiling.clone(), |c, a| a.compile(&c))
     }
 }
 
 impl Compile for EvalExpr {
-    fn compile(&self, compiling: Compiling) -> Compiling {
+    fn compile(&self, compiling: &Compiling) -> Compiling {
         match self {
             Literal(i) => compiling.merge(vec![Instruction::I32Const(*i)].into()),
             BinaryExpr { op, left, right } => {
-                let left_compiled = left.compile(compiling.clone());
-                let right_compiled = right.compile(left_compiled.clone());
+                let left_compiled = &left.compile(compiling);
+                let right_compiled = right.compile(left_compiled);
                 right_compiled.merge(
                     vec![match op {
                         &Operator::Plus => Instruction::I32Add,
@@ -59,7 +60,7 @@ impl Compile for EvalExpr {
 }
 
 impl Compile for Expr {
-    fn compile(&self, compiling: Compiling) -> Compiling {
+    fn compile(&self, compiling: &Compiling) -> Compiling {
         match self {
             Eval(eval) => eval.compile(compiling),
             Return(ret) => ret.compile(compiling),
@@ -78,7 +79,7 @@ impl Compile for Expr {
             }
 
             Assign(name, value) => {
-                let value_compiled = value.compile(compiling.clone());
+                let value_compiled = value.compile(compiling);
                 let new = match compiling.local_index(name) {
                     Some(index) => Compiling {
                         instructions: vec![Instruction::SetLocal(index)],
@@ -91,7 +92,7 @@ impl Compile for Expr {
                 };
                 value_compiled.merge(new)
             }
-            Seq(v) => v.into_iter().fold(compiling, |c, a| a.compile(c)),
+            Seq(v) => v.into_iter().fold(compiling.clone(), |c, a| a.compile(&c)),
             IfElse(cond, then_b, else_b) => {
                 let cond_instructions = &cond.compile(compiling);
                 let then_b_instructions = then_b.compile(cond_instructions);
@@ -113,23 +114,30 @@ pub struct Compiling {
     pub errors: Vec<Error>,
 }
 impl Compiling {
-    pub fn merge(self, other: Compiling) -> Compiling {
+    pub fn merge(&self, other: Compiling) -> Compiling {
         Compiling {
             instructions: self
                 .instructions
+                .clone()
                 .into_iter()
                 .chain(other.instructions)
-                .collect(),
+                .collect::<Vec<Instruction>>(),
             locals: {
                 let mut re = self
                     .locals
+                    .clone()
                     .into_iter()
                     .chain(other.locals)
                     .collect::<Vec<String>>();
                 re.dedup();
                 re
             },
-            errors: self.errors.into_iter().chain(other.errors).collect(),
+            errors: self
+                .errors
+                .clone()
+                .into_iter()
+                .chain(other.errors)
+                .collect(),
         }
     }
     fn local_index(&self, name: &str) -> Option<u32> {

@@ -9,13 +9,13 @@ use EvalExpr::*;
 #[test]
 fn const_test() {
     let exp = Literal(27);
-    let v = exp.compile(Compiling::default());
+    let v = exp.compile(&Compiling::default());
     assert_eq!(v, vec![Instruction::I32Const(27)].into())
 }
 #[test]
 fn const_add() {
     let exp = binary_expr("+", 1, 3);
-    let v = exp.compile(Compiling::default());
+    let v = exp.compile(&Compiling::default());
     assert_eq!(
         v,
         vec![
@@ -34,7 +34,7 @@ fn const_add_sub() {
         left: Box::new(binary_expr("+", 1, 3)),
         right: Box::new(Literal(2)),
     };
-    let v = exp.compile(Compiling::default());
+    let v = exp.compile(&Compiling::default());
     assert_eq!(
         v,
         vec![
