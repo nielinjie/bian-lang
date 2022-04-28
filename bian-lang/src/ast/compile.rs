@@ -2,11 +2,11 @@ use std::iter::empty;
 
 use parity_wasm::elements::{BlockType, Instruction};
 
-use crate::Error;
-
 use super::{Block, EvalExpr, Expr, Operator};
 use super::{EvalExpr::*, Statement};
+use crate::Error;
 use Expr::*;
+use Instruction::*;
 pub trait Compile {
     fn compile(&self, compiling: &Compiling) -> Compiling;
 }
@@ -14,7 +14,7 @@ impl Compile for Statement {
     fn compile(&self, compiling: &Compiling) -> Compiling {
         let Statement(e) = self;
         match e {
-            Eval(_) => e.compile(compiling).merge(vec![Instruction::Drop].into()),
+            Eval(_) => e.compile(compiling).merge(vec![Drop].into()),
             _ => e.compile(compiling),
         }
     }
@@ -30,14 +30,14 @@ impl Compile for Block {
 impl Compile for EvalExpr {
     fn compile(&self, compiling: &Compiling) -> Compiling {
         match self {
-            Literal(i) => compiling.merge(vec![Instruction::I32Const(*i)].into()),
+            Literal(i) => compiling.merge(vec![I32Const(*i)].into()),
             BinaryExpr { op, left, right } => {
                 let left_compiled = &left.compile(compiling);
                 let right_compiled = right.compile(left_compiled);
                 right_compiled.merge(
                     vec![match op {
-                        &Operator::Plus => Instruction::I32Add,
-                        &Operator::Minus => Instruction::I32Sub,
+                        &Operator::Plus => I32Add,
+                        &Operator::Minus => I32Sub,
                     }]
                     .into(),
                 )
@@ -45,7 +45,7 @@ impl Compile for EvalExpr {
             Variable(name) => {
                 let new = match compiling.local_index(name) {
                     Some(index) => Compiling {
-                        instructions: vec![Instruction::GetLocal(index)],
+                        instructions: vec![GetLocal(index)],
                         ..Compiling::default()
                     },
                     None => Compiling {
@@ -63,7 +63,7 @@ impl Compile for Expr {
     fn compile(&self, compiling: &Compiling) -> Compiling {
         match self {
             Eval(eval) => eval.compile(compiling),
-            Return(ret) => ret.compile(compiling),
+            Expr::Return(ret) => ret.compile(compiling),
             VarDef(name) => {
                 let new = match compiling.local_index(name) {
                     None => Compiling {
@@ -82,7 +82,7 @@ impl Compile for Expr {
                 let value_compiled = value.compile(compiling);
                 let new = match compiling.local_index(name) {
                     Some(index) => Compiling {
-                        instructions: vec![Instruction::SetLocal(index)],
+                        instructions: vec![SetLocal(index)],
                         ..Compiling::default()
                     },
                     None => Compiling {
@@ -95,14 +95,10 @@ impl Compile for Expr {
             Seq(v) => v.into_iter().fold(compiling.clone(), |c, a| a.compile(&c)),
             IfElse(cond, then_b, else_b) => {
                 let cond_instructions = &cond.compile(compiling);
-                let then_b_instructions = then_b.compile(cond_instructions);
-                let else_b_instructions = else_b.compile(cond_instructions);
-                cond_instructions
-                    .merge(Instruction::If(BlockType::NoResult).into())
-                    .merge(then_b_instructions)
-                    .merge(Instruction::Else.into())
-                    .merge(else_b_instructions)
-                    .merge(Instruction::End.into())
+                let then_b_instructions =
+                    then_b.compile(&cond_instructions.merge(If(BlockType::NoResult).into()));
+                let else_b_instructions = else_b.compile(&then_b_instructions.merge(Else.into()));
+                else_b_instructions.merge(End.into())
             } // _ => unimplemented!(),
         }
     }

@@ -1,6 +1,7 @@
 use super::string_to_result;
 
 #[test]
+#[ignore]
 fn simple_if() {
     string_to_result(
         "let a

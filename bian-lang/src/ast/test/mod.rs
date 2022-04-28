@@ -3,14 +3,14 @@ use parity_wasm::elements::Instruction;
 use super::compile::*;
 use crate::ast::{EvalExpr, Operator};
 
-
+use Instruction::*;
 use super::super::parsers::test::binary_expr;
 use EvalExpr::*;
 #[test]
 fn const_test() {
     let exp = Literal(27);
     let v = exp.compile(&Compiling::default());
-    assert_eq!(v, vec![Instruction::I32Const(27)].into())
+    assert_eq!(v, vec![I32Const(27)].into())
 }
 #[test]
 fn const_add() {
@@ -19,9 +19,9 @@ fn const_add() {
     assert_eq!(
         v,
         vec![
-            Instruction::I32Const(1),
-            Instruction::I32Const(3),
-            Instruction::I32Add
+            I32Const(1),
+            I32Const(3),
+            I32Add
         ]
         .into()
     )
@@ -38,14 +38,15 @@ fn const_add_sub() {
     assert_eq!(
         v,
         vec![
-            Instruction::I32Const(1),
-            Instruction::I32Const(3),
-            Instruction::I32Add,
-            Instruction::I32Const(2),
-            Instruction::I32Sub
+            I32Const(1),
+            I32Const(3),
+            I32Add,
+            I32Const(2),
+            I32Sub
         ]
         .into()
     )
 }
 
 mod variable;
+mod flows;
