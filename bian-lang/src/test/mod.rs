@@ -6,7 +6,7 @@ use crate::parsers::program;
 use crate::{wasm::{module_by_compiling, run_module}};
 #[test]
 fn string_to_result_sample() {
-    string_to_result("return 1+3-2", 2)
+    string_to_result("return 1+3-2\n", 2)
 }
 
 fn string_to_result(s: &str, re: i32) {

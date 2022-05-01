@@ -1,15 +1,17 @@
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{alpha1, alphanumeric1, char, newline, one_of, space0},
+    character::complete::{alpha1, alphanumeric1, char, one_of, space0, line_ending},
     combinator::{eof, map, map_res, recognize},
     error::ParseError,
-    multi::{many0, many1, separated_list1},
+    multi::{many0, many1},
     sequence::{delimited, pair, preceded, terminated, tuple},
     IResult,
 };
 
 use crate::ast::{EvalExpr, Expr, Operator, Statement, Block};
+
+use self::flows::if_else_parser;
 
 fn ws<'a, F: 'a, O, E: ParseError<&'a str>>(
     inner: F,
@@ -19,6 +21,18 @@ where
 {
     delimited(space0, inner, space0)
 }
+
+
+fn line<'a, F: 'a, O, E: ParseError<&'a str>>(
+    inner: F,
+) -> impl FnMut(&'a str) -> IResult<&'a str, O, E>
+where
+    F: FnMut(&'a str) -> IResult<&'a str, O, E>,
+{
+    delimited(many0(line_ending), inner, many1(line_ending))
+}
+
+
 fn decimal(input: &str) -> IResult<&str, &str> {
     recognize(many1(terminated(one_of("0123456789"), many0(char('_')))))(input)
 }
@@ -102,22 +116,25 @@ pub fn eval_parse(input: &str) -> IResult<&str, Expr> {
     )(input)
 }
 pub fn statement(input: &str) -> IResult<&str, Expr> {
-    ws(alt((
+    line(ws(alt((
+        if_else_parser,
         return_parser,
         def_and_assign_par,
         def_parser,
         assign_par,
         eval_parse,
-    )))(input)
+    ))))(input)
 }
 pub fn block(i: &str) -> IResult<&str, Vec<Expr>> {
-    separated_list1(newline, statement)(i)
+    ws(many1(statement))(i)
 }
 pub fn program(input: &str) -> IResult<&str, Block> {
     map(terminated(block, eof), |ve| {
         Block(ve.into_iter().map(Statement).collect())
     })(input)
 }
+
+pub mod flows;
 
 #[cfg(test)]
 pub mod test;

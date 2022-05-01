@@ -5,7 +5,9 @@ fn var() {
     string_to_result(
         "let a
     a=2
-    return a",
+    return a
+    ",
+
         2,
     )
 }
@@ -16,7 +18,8 @@ fn var_more() {
     a=2
     let b
     b = a+3
-    return a",
+    return a
+    ",
         2,
     )
 }
@@ -27,7 +30,8 @@ fn var_more_2() {
     a=2
     let b
     b = a+3
-    return b",
+    return b
+    ",
         5,
     )
 }
@@ -40,7 +44,8 @@ fn var_three() {
     b = a+3
     let c
     c = 1+a+ b -7
-    return c",
+    return c
+    ",
         1,
     )
 }
@@ -51,7 +56,8 @@ fn var_three_short() {
     a=2
     let b = a+3
     let c = 1+a+ b -7
-    return c",
+    return c
+    ",
         1,
     )
 }
@@ -63,7 +69,8 @@ fn var_re_assign() {
         "let a
     a=2
     a = a+1
-    return a",
+    return a
+    ",
         3,
     )
 }
@@ -78,7 +85,8 @@ fn mid_value_expr() {
     a = 2
     a + 1
     let b = a + 3
-    return b",
+    return b
+    ",
         5,
     )
 }

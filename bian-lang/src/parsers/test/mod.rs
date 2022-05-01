@@ -42,7 +42,7 @@ fn add_sub_simple() {
 
 #[test]
 fn some_case_for_ws() {
-    let strings = vec!["1+3-2", " 1+3-2 ", "1+ 3-2"];
+    let strings = vec!["1+3-2\n", " 1+3-2 \n", "1+ 3-2\n "];
     for text in strings.into_iter() {
         let r2 = statement(text);
         ok_eq(r2, Eval(Box::new(sample_node())));
@@ -50,7 +50,7 @@ fn some_case_for_ws() {
 }
 #[test]
 fn statement_all() {
-    let str = " 1+2 ";
+    let str = " 1+2 \n";
     let ast = statement(str);
     let r = binary_expr("+", 1, 2);
     ok_eq(ast, Eval(Box::new(r)));
@@ -103,3 +103,7 @@ where
 
 mod variable;
 mod error;
+
+mod statement;
+
+mod flows;

@@ -3,7 +3,7 @@ use crate::{Error, run};
 
 #[test]
 fn compiling_error() {
-    let re = run("a = 2",None);
+    let re = run("a = 2\n",None);
     assert!(re.is_err());
     match re {
         Err(Error::CompileError(s)) => assert!(!s.is_empty()),
@@ -12,7 +12,7 @@ fn compiling_error() {
 }
 #[test]
 fn parse_error() {
-    let re = run("a = = 2",None);
+    let re = run("a = = 2\n",None);
     assert!(re.is_err());
     match re {
         Err(Error::ParseError(s)) => assert!(!s.is_empty()),

@@ -1,7 +1,6 @@
 use super::string_to_result;
 
 #[test]
-#[ignore]
 fn simple_if() {
     string_to_result(
         "let a
@@ -9,10 +8,10 @@ fn simple_if() {
     let b
     if (a) {
         b =1
-    }else{
+    } else {
         b = 2
     }
-    return b",
+    return b\n",
         1,
     )
 }
