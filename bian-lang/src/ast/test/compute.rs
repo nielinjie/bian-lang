@@ -1,7 +1,7 @@
 use crate::ast::EvalExpr::*;
 use crate::ast::Operator::*;
-use crate::parsers::compute::ComputeSeq;
-use crate::parsers::compute::find_priority;
+use crate::ast::compute::ComputeSeq;
+use crate::ast::compute::find_priority;
 
 #[test]
 fn step_to_tree() {
@@ -103,7 +103,6 @@ fn find_first() {
 }
 
 #[test]
-#[ignore]
 fn simple_to_tree() {
     let seq = ComputeSeq {
         operators: vec![Plus],
@@ -119,7 +118,6 @@ fn simple_to_tree() {
 }
 
 #[test]
-#[ignore]
 fn transform_to_tree() {
     let seq = ComputeSeq {
         operators: vec![Plus, Plus],
@@ -135,5 +133,23 @@ fn transform_to_tree() {
         op: Plus,
     };
 
+    assert_eq!(seq.to_tree(), tree)
+}
+#[test]
+fn transform_to_tree_multi() {
+    let seq = ComputeSeq {
+        operators: vec![Plus, Multi],
+        operands: vec![Literal(1), Literal(2), Literal(3)],
+    };
+    let tree = BinaryExpr {
+         left: Box::new(Literal(1)),
+        right: Box::new(BinaryExpr {
+            left: Box::new(Literal(2)),
+            right: Box::new(Literal(3)),
+            op: Multi,
+        }),
+       
+        op: Plus,
+    };
     assert_eq!(seq.to_tree(), tree)
 }

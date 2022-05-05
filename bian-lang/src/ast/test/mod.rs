@@ -50,3 +50,5 @@ fn const_add_sub() {
 
 mod variable;
 mod flows;
+
+mod compute;

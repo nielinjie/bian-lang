@@ -35,6 +35,7 @@ impl CompilingRepresent {
 
 pub fn compile(s: &str) -> Result<Compiling, Error> {
     let (_input, exp) = program(s).finish()?;
+    //TODO add transform here.
     Ok(exp.compile(&Compiling::default()))
 }
 

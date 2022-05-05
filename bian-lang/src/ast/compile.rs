@@ -56,6 +56,7 @@ impl Compile for EvalExpr {
                 };
                 compiling.merge(new)
             }
+            _ => unreachable!("should be transformed.")
         }
     }
 }

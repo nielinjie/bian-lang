@@ -1,3 +1,5 @@
+use self::compute::ComputeSeq;
+
 #[derive(PartialEq, Debug, Clone)]
 pub enum Operator {
     Plus,
@@ -24,12 +26,15 @@ pub enum EvalExpr {
         right: Box<EvalExpr>,
     },
     Variable(String),
+    Compute (ComputeSeq )
 }
 #[derive(PartialEq, Debug, Clone)]
 pub struct Statement(pub Expr);
 #[derive(PartialEq, Debug, Clone)]
 pub struct Block(pub Vec<Statement>);
 pub mod compile;
+pub mod compute;
+pub mod transform;
 
 #[cfg(test)]
 mod test;
