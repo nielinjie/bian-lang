@@ -11,3 +11,4 @@ parity-wasm = "^0.40.0"
 metered_wasmi = "*"
 im = "*"
 serde = { version = "1.0", features = ["derive"] }
+common_macros = "0.1.1"

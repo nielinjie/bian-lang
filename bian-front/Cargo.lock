@@ -21,6 +21,7 @@ dependencies = [
 name = "bian-lang"
 version = "0.1.0"
 dependencies = [
+ "common_macros",
  "im",
  "metered_wasmi",
  "nom",
@@ -54,6 +55,12 @@ name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
+name = "common_macros"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f3f6d59c71e7dc3af60f0af9db32364d96a16e9310f3f5db2b55ed642162dd35"
 
 [[package]]
 name = "im"

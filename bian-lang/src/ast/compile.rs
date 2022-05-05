@@ -38,6 +38,7 @@ impl Compile for EvalExpr {
                     vec![match op {
                         &Operator::Plus => I32Add,
                         &Operator::Minus => I32Sub,
+                        _ => unimplemented!()
                     }]
                     .into(),
                 )
@@ -99,7 +100,7 @@ impl Compile for Expr {
                     then_b.compile(&cond_instructions.merge(If(BlockType::NoResult).into()));
                 let else_b_instructions = else_b.compile(&then_b_instructions.merge(Else.into()));
                 else_b_instructions.merge(End.into())
-            } // _ => unimplemented!(),
+            }
         }
     }
 }

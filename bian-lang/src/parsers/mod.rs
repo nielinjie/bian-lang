@@ -11,7 +11,7 @@ use nom::{
 
 use crate::ast::{EvalExpr, Expr, Operator, Statement, Block};
 
-use self::flows::if_else_parser;
+use self::{flows::if_else_parser, compute::compute_parser};
 
 fn ws<'a, F: 'a, O, E: ParseError<&'a str>>(
     inner: F,
@@ -52,18 +52,7 @@ pub fn operator(i: &str) -> IResult<&str, Operator> {
         _ => panic!(),
     })(i)
 }
-pub fn compute_parser(i: &str) -> IResult<&str, EvalExpr> {
-    map(
-        tuple((operatee, many0(pair(ws(operator), operatee)))),
-        |(first, v)| {
-            v.into_iter().fold(first, |a, b| EvalExpr::BinaryExpr {
-                op: b.0,
-                left: Box::new(a),
-                right: Box::new(b.1),
-            })
-        },
-    )(i)
-}
+
 
 fn identifier(input: &str) -> IResult<&str, &str> {
     //TODO 排除keyword：let、return
@@ -135,6 +124,7 @@ pub fn program(input: &str) -> IResult<&str, Block> {
 }
 
 pub mod flows;
+pub mod compute;
 
 #[cfg(test)]
 pub mod test;

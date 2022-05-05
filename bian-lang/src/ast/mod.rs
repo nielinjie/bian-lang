@@ -2,6 +2,8 @@
 pub enum Operator {
     Plus,
     Minus,
+    Multi,
+    Div
 }
 #[derive(PartialEq, Debug, Clone)]
 pub enum Expr {
