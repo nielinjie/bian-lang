@@ -45,7 +45,7 @@ impl ComputeSeq {
             operands: new_operands,
         }
     }
-    pub fn to_tree(self) -> EvalExpr {
+    pub fn to_tree(&self) -> EvalExpr {
         let mut new_seq = self.clone();
         while new_seq.operators.len()> 0 {
             let operator_index = find_priority(&new_seq.operators);
