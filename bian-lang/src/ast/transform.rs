@@ -15,12 +15,13 @@ pub trait Transform<T> {
     fn transform(t: &T) -> TransformResult<T>;
 }
 pub type Log = String; //TODO add location/context/lineNo stuff...
+#[derive(Debug)]
 pub enum TransformResult<T> {
     NothingToDo,
     Success(T, Vec<Log>),
     Fail(Vec<Log>),
 }
-impl<T> TransformResult<T> {
+ impl<T> TransformResult<T> {
     fn map<U, F>(self, f: F) -> TransformResult<U>
     where
         F: Fn(T) -> U,
@@ -73,7 +74,7 @@ struct EvalExprTransform;
 impl Transform<EvalExpr> for EvalExprTransform {
     fn transform(exp: &EvalExpr) -> TransformResult<EvalExpr> {
         match exp {
-            Compute(ce) => Success(ce.to_tree(), vec![]),
+            Compute(ce) => Success(ce.to_tree(), vec!["transform compute_seq to binary_expr".to_string()]),
             _ => NothingToDo,
         }
     }
@@ -95,7 +96,9 @@ impl Transform<Expr> for ExpressionTransform {
                     .collect::<Vec<_>>();
                 TransformResult::one_by_one(results, |v| Seq(patch(ev, v)))
             }
-            IfElse(ee, if_b, else_b) => {}
+            IfElse(ee, if_b, else_b) => {
+                unimplemented!()
+            }
             _ => NothingToDo,
         }
     }
@@ -108,7 +111,7 @@ impl Transform<Statement> for StatementTransform {
         ExpressionTransform::transform(e).map(|e| Statement(e))
     }
 }
-struct BlockTransform;
+pub struct BlockTransform;
 impl Transform<Block> for BlockTransform {
     fn transform(t: &Block) -> TransformResult<Block> {
         let statements = &t.0;
