@@ -1,9 +1,10 @@
-use ast::compile::{Compile, Compiling};
+use ast::{compile::{Compile, Compiling}, transform::{BlockTransform,TransformResult, Transform}};
 use metered_wasmi::RuntimeValue;
 use nom::Finish;
 use parsers::program;
 use serde::{Serialize};
 use wasm::{module_by_compiling, run_module};
+use TransformResult::*;
 
 pub fn greet() -> String {
     "greet from bian-lang".to_string()
@@ -14,6 +15,7 @@ pub enum Error {
     ParseError(String),
     CompileError(String),
     RuntimeError(String),
+    TransformError(Vec<String>),
 }
 
 #[derive(Serialize)]
@@ -36,7 +38,14 @@ impl CompilingRepresent {
 pub fn compile(s: &str) -> Result<Compiling, Error> {
     let (_input, exp) = program(s).finish()?;
     //TODO add transform here.
-    Ok(exp.compile(&Compiling::default()))
+
+    let trans = BlockTransform::transform(&exp);
+    match trans{
+        Success(b,logs)=>    Ok(b.compile(&Compiling::default())),
+        NothingToDo => Ok(exp.compile(&Compiling::default())),
+        Fail(logs)=> Err(Error::TransformError(logs))
+    }
+
 }
 
 pub fn run(s: &str,compiled:Option<Compiling>) -> Result<i32, Error> {

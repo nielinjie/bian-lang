@@ -1,7 +1,12 @@
-use super::{compute_parser, assign_par, def_and_assign_par, def_parser, test::ok_eq, variable_parser};
-use crate::ast::{Expr, Operator,EvalExpr};
-use Expr::*;
+use super::{
+    assign_par, compute_parser, def_and_assign_par, def_parser, test::ok_eq, variable_parser,
+};
+use core::fmt::Debug;
+
+use crate::ast::{EvalExpr, Expr, Operator, transform::{EvalExprTransform, ExpressionTransform, Transform,TransformResult}};
 use EvalExpr::*;
+use Expr::*;
+use TransformResult::*;
 
 #[test]
 fn simple_let() {
@@ -20,7 +25,7 @@ fn simple_variable() {
 fn var_in_add_sub() {
     let s = " a+1";
     let ast = compute_parser(s);
-    ok_eq(
+    ok_eq_transform(
         ast,
         BinaryExpr {
             op: Operator::Plus,
@@ -38,7 +43,7 @@ fn var_in_add_sub_three() {
         left: Box::new(Variable("b".to_string())),
         right: Box::new(Variable("a".to_string())),
     };
-    ok_eq(
+    ok_eq_transform(
         ast,
         BinaryExpr {
             op: Operator::Plus,
@@ -51,7 +56,7 @@ fn var_in_add_sub_three() {
 fn assign_simple() {
     let s = "a = b+1";
     let ast = assign_par(s);
-    ok_eq(
+    ok_eq_transform_ex(
         ast,
         Assign(
             "a".to_string(),
@@ -68,7 +73,7 @@ fn assign_simple() {
 fn def_and_assign() {
     let s = "let a = b+1";
     let ast = def_and_assign_par(s);
-    ok_eq(
+    ok_eq_transform_ex(
         ast,
         Seq(vec![
             VarDef("a".to_string()),
@@ -82,4 +87,32 @@ fn def_and_assign() {
             ),
         ]),
     );
+}
+pub fn ok_eq_transform<E>(r: Result<(&str, EvalExpr), E>, eq: EvalExpr)
+where
+    E: Debug,
+{
+    println!("{:?}", r);
+    assert!(r.is_ok());
+    println!("{:?}", eq);
+    let re = r.ok().unwrap().1;
+    let trans = EvalExprTransform::transform(&re);
+    match trans {
+        Success(e, _) => assert_eq!(e, eq),
+        _ => panic!(),
+    }
+}
+pub fn ok_eq_transform_ex<E>(r: Result<(&str, Expr), E>, eq: Expr)
+where
+    E: Debug,
+{
+    println!("{:?}", r);
+    assert!(r.is_ok());
+    println!("{:?}", eq);
+    let re = r.ok().unwrap().1;
+    let trans = ExpressionTransform::transform(&re);
+    match trans {
+        Success(e, _) => assert_eq!(e, eq),
+        _ => panic!(),
+    }
 }

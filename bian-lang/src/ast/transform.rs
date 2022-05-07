@@ -1,3 +1,7 @@
+
+
+use std::ops::Deref;
+
 use super::{Block, EvalExpr::*, Statement};
 use super::{EvalExpr, Expr};
 use Expr::*;
@@ -21,7 +25,14 @@ pub enum TransformResult<T> {
     Success(T, Vec<Log>),
     Fail(Vec<Log>),
 }
- impl<T> TransformResult<T> {
+impl<T> TransformResult<T> {
+    pub fn unwrap(self) -> Option<T>{
+        match self {
+            Success(r,_)=> Some(r),
+            NothingToDo =>None,
+            _ => panic!()
+        }
+    }
     fn map<U, F>(self, f: F) -> TransformResult<U>
     where
         F: Fn(T) -> U,
@@ -32,20 +43,34 @@ pub enum TransformResult<T> {
             Fail(l) => Fail(l),
         }
     }
-    // fn flatMap<U, F>(self, f: F) -> TransformResult<(Option<T>, Option<U>)>
-    // where
-    //     F: Fn(T) -> TransformResult<U>,
-    // {
-    //     match self {
-    //         Success(r, logs) => {
-    //             let (u, log) = f(r);
-    //             Success((r, u), logs.extend(log))
-    //         }
-    //         NothingToDo => f(()),
-    //         Fail(logs) => Fail(logs),
-    //     }
-    // }
-    fn one_by_one<U, F>(vec: Vec<TransformResult<T>>, f: F) -> TransformResult<U>
+    fn reduce<U>(self, b: TransformResult<U>) -> TransformResult<(Option<T>, Option<U>)> {
+        match self {
+            Fail(logs) => Fail(logs),
+            NothingToDo => b.map(|r| (None, Some(r))),
+            Success(r, logs) => match b {
+                Fail(log_b) => Fail(log_b),
+                NothingToDo => Success((Some(r), None), logs),
+                Success(rb, log_b) => {
+                    Success((Some(r), Some(rb)), logs.into_iter().chain(log_b).collect())
+                }
+            },
+        }
+    }
+    fn reduce_3<U, V>(
+        self,
+        b: TransformResult<U>,
+        c: TransformResult<V>,
+    ) -> TransformResult<(Option<T>, Option<U>, Option<V>)> {
+        let re = self.reduce(b).reduce(c);
+        re.map(|r| {
+            let (f, s) = r;
+            match f {
+                Some(ff) => (ff.0, ff.1, s),
+                None => (None, None, s),
+            }
+        })
+    }
+    fn for_all<U, F>(vec: Vec<TransformResult<T>>, f: F) -> TransformResult<U>
     where
         F: Fn(Vec<(usize, T)>) -> U,
     {
@@ -70,18 +95,21 @@ pub enum TransformResult<T> {
 
 use TransformResult::*;
 
-struct EvalExprTransform;
-impl Transform<EvalExpr> for EvalExprTransform {
+pub struct EvalExprTransform;
+ impl Transform<EvalExpr> for EvalExprTransform {
     fn transform(exp: &EvalExpr) -> TransformResult<EvalExpr> {
         match exp {
-            Compute(ce) => Success(ce.to_tree(), vec!["transform compute_seq to binary_expr".to_string()]),
+            Compute(ce) => Success(
+                ce.to_tree(),
+                vec!["transform compute_seq to binary_expr".to_string()],
+            ),
             _ => NothingToDo,
         }
     }
 }
 
-struct ExpressionTransform;
-impl Transform<Expr> for ExpressionTransform {
+pub struct ExpressionTransform;
+ impl Transform<Expr> for ExpressionTransform {
     fn transform(exp: &Expr) -> TransformResult<Expr> {
         match exp {
             Eval(ee) => EvalExprTransform::transform(ee).map(|e| Eval(Box::new(e))),
@@ -94,10 +122,21 @@ impl Transform<Expr> for ExpressionTransform {
                     .iter()
                     .map(|e| ExpressionTransform::transform(e))
                     .collect::<Vec<_>>();
-                TransformResult::one_by_one(results, |v| Seq(patch(ev, v)))
+                TransformResult::for_all(results, |v| Seq(patch(ev, v)))
             }
             IfElse(ee, if_b, else_b) => {
-                unimplemented!()
+                let re = TransformResult::reduce_3(
+                    EvalExprTransform::transform(ee),
+                    BlockTransform::transform(if_b),
+                    BlockTransform::transform(else_b),
+                );
+                re.map(|re_3| {
+                    IfElse(
+                        re_3.0.map(Box::new).unwrap_or(ee.clone()),
+                        re_3.1.map(Box::new).unwrap_or(if_b.clone()),
+                        re_3.2.map(Box::new).unwrap_or(else_b.clone()),
+                    )
+                })
             }
             _ => NothingToDo,
         }
@@ -119,7 +158,7 @@ impl Transform<Block> for BlockTransform {
             .into_iter()
             .map(|s| StatementTransform::transform(s))
             .collect::<Vec<_>>();
-        TransformResult::one_by_one(results, |v| Block(patch(statements, v)))
+        TransformResult::for_all(results, |v| Block(patch(statements, v)))
     }
 }
 

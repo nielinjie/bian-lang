@@ -24,10 +24,6 @@ pub struct ComputeSeq {
 
 impl ComputeSeq {
     pub fn to_tree_step(self, operator_index: usize) -> ComputeSeq {
-        //left=operands[index],right =operands[index+1],op:operator[index]
-        //new operands[index]=new binaryExp. operands<<1
-        //operators<<1
-
         let mut new_operators = self.operators.clone();
         new_operators.remove(operator_index);
 
@@ -47,7 +43,7 @@ impl ComputeSeq {
     }
     pub fn to_tree(&self) -> EvalExpr {
         let mut new_seq = self.clone();
-        while new_seq.operators.len()> 0 {
+        while new_seq.operators.len() > 0 {
             let operator_index = find_priority(&new_seq.operators);
             new_seq = new_seq.to_tree_step(operator_index)
         }
